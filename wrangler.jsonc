@@ -26,7 +26,7 @@
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "todo-list",
+			"database_name": "todo-list-db",
 			"database_id": "8d89b946-0d65-469f-ab16-aa6cd5f22ae8",
 			"migrations_dir": "migrations"
 		}
