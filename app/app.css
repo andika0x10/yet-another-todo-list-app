@@ -1,15 +1,301 @@
 @import "tailwindcss" source(".");
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-display: "Sofia Sans Extra Condensed", "Arial Narrow", "Roboto Condensed", ui-sans-serif, sans-serif;
+  --font-receipt: "Courier Prime", "Courier New", ui-monospace, monospace;
+
+  --color-paper: #f4f5f5;
+  --color-ink: #23262b;
+  --color-muted: #6b7078;
+  --color-rail: #c9cdd1;
+  --color-stamp: #c9301b;
 }
 
-html,
-body {
-  @apply bg-white dark:bg-gray-950;
+@layer base {
+  html {
+    color-scheme: light;
+    background: #fff;
+  }
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
+  body {
+    @apply bg-white font-receipt text-ink antialiased;
+  }
+
+  :where(a, button, input, textarea):focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  /* Ticket rail: tight columns, extra room below for the sawtooth edge. */
+  .board-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+    gap: 3.25rem 2rem;
+    align-items: start;
+  }
+
+  /* Ticket: receipt paper with a hanging hole on top and a sawtooth bottom edge. */
+  .ticket {
+    position: relative;
+    background: var(--color-paper);
+    padding: 2.75rem 1.5rem 1rem;
+  }
+
+  .ticket::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -7px;
+    height: 7px;
+    background: var(--color-paper);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='7'%3E%3Cpath d='M0 0h14L7 7z'/%3E%3C/svg%3E") repeat-x left top / 14px 7px;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='7'%3E%3Cpath d='M0 0h14L7 7z'/%3E%3C/svg%3E") repeat-x left top / 14px 7px;
+  }
+
+  /* Hanging hole. On active cards it is also the drag handle. */
+  .hole {
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2rem;
+    translate: -50% 0;
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+
+  .hole::before {
+    content: "";
+    width: 0.8125rem;
+    height: 0.8125rem;
+    border-radius: 50%;
+    background: #fff;
+    border: 1.5px solid var(--color-rail);
+  }
+
+  button.hole {
+    cursor: grab;
+    touch-action: none;
+  }
+
+  button.hole:hover::before {
+    border-color: var(--color-muted);
+  }
+
+  button.hole:disabled {
+    cursor: default;
+  }
+
+  button.hole:disabled::before {
+    border-color: var(--color-rail);
+  }
+
+  .dragging {
+    filter: drop-shadow(0 8px 10px rgb(35 38 43 / 0.14));
+  }
+
+  .dragging .hole {
+    cursor: grabbing;
+  }
+
+  /* Perforation between title and body. */
+  .perforation {
+    position: relative;
+    margin: 1rem -1.5rem;
+    border-top: 1.5px dashed var(--color-rail);
+  }
+
+  .perforation::before,
+  .perforation::after {
+    content: "";
+    position: absolute;
+    top: -0.5rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: #fff;
+  }
+
+  .perforation::before {
+    left: -0.5rem;
+  }
+
+  .perforation::after {
+    right: -0.5rem;
+  }
+
+  /* Blank ticket where a new card is written. */
+  .ticket-blank {
+    border: 1.5px dashed var(--color-rail);
+    padding: 1.5rem 1.5rem 1rem;
+  }
+
+  .ticket-blank .perforation {
+    margin-inline: -1.5px;
+    margin-block: 1rem;
+  }
+
+  .ticket-blank .perforation::before,
+  .ticket-blank .perforation::after {
+    display: none;
+  }
+
+  /* Ticket text. */
+  .ticket-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 2rem;
+    line-height: 1.05;
+    letter-spacing: -0.005em;
+    overflow-wrap: anywhere;
+  }
+
+  .ticket-body {
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .meta {
+    margin-top: 1rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    color: var(--color-muted);
+  }
+
+  .error-text {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-stamp);
+  }
+
+  .error-text:not(:empty) {
+    margin-top: 0.5rem;
+  }
+
+  /* Text fields. */
+  .field {
+    display: block;
+    width: calc(100% + 1.25rem);
+    margin-inline: -0.625rem;
+    border: 0;
+    border-radius: 0;
+    padding: 0.5rem 0.625rem;
+    background: #fff;
+    color: var(--color-ink);
+  }
+
+  .ticket-blank .field {
+    background: var(--color-paper);
+  }
+
+  .field::placeholder {
+    color: var(--color-muted);
+    opacity: 1;
+  }
+
+  .field-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 2rem;
+    line-height: 1.05;
+  }
+
+  .field-body {
+    font-family: var(--font-receipt);
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    min-height: 6.5rem;
+    resize: none;
+    field-sizing: content;
+  }
+
+  /* PIN field: six underlines, one digit per underline. Total width is 14.5ch so it fits inside the ticket. */
+  .field-pin {
+    box-sizing: content-box;
+    width: 14ch;
+    padding: 0 0 0.5rem 0.5ch;
+    border: 0;
+    border-radius: 0;
+    background:
+      repeating-linear-gradient(90deg, var(--color-ink) 0 2ch, transparent 2ch 2.5ch) left bottom / 100% 2px no-repeat;
+    font-family: var(--font-receipt);
+    font-weight: 700;
+    font-size: 1.75rem;
+    line-height: 1.4;
+    letter-spacing: 1.5ch;
+    color: var(--color-ink);
+  }
+
+  /* Buttons and links. */
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-top: 0.75rem;
+    min-height: 2.5rem;
+  }
+
+  .button {
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    border-radius: 0;
+    background: var(--color-ink);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 700;
+    transition: background-color 120ms;
+  }
+
+  .button:hover:not(:disabled) {
+    background: #3b4047;
+  }
+
+  .button:disabled {
+    opacity: 0.5;
+  }
+
+  .link {
+    min-height: 2.5rem;
+    font-size: 0.875rem;
+    text-decoration: underline;
+    text-decoration-color: var(--color-rail);
+    text-underline-offset: 0.25em;
+    transition: text-decoration-color 120ms;
+  }
+
+  .link:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .link-danger {
+    color: var(--color-stamp);
+  }
+
+  /* The only spontaneous motion: a new card prints from top to bottom. */
+  .print-in {
+    animation: print-in 520ms steps(14, end);
+  }
+
+  @keyframes print-in {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(0 0 -12px 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .print-in {
+      animation: none;
+    }
   }
 }
