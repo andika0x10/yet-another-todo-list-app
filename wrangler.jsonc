@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "yet-another-todo-list-app",
+	"name": "todo",
 	"compatibility_date": "2026-11-19",
 	"main": "./workers/app.ts",
 	"observability": {
