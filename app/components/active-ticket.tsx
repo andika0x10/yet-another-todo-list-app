@@ -10,8 +10,8 @@ import { BODY_MAX, TITLE_MAX } from "~/lib/limits";
 import type { Card } from "~/lib/types";
 import type { action } from "~/routes/cards";
 
-/** Active card: can be dragged by its hanging hole, edited, archived, or deleted. */
-export function ActiveTicket({ card, fresh }: { card: Card; fresh: boolean }) {
+/** Active card: hangs on the rail by a clip. Can be dragged by the clip, edited, archived, or deleted. */
+export function ActiveTicket({ card, index, fresh }: { card: Card; index: number; fresh: boolean }) {
   const fetcher = useFetcher<typeof action>({ key: `card-${card.id}` });
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -54,15 +54,21 @@ export function ActiveTicket({ card, fresh }: { card: Card; fresh: boolean }) {
     }
   }
 
-  const itemClass = [
-    "list-none",
-    isDragging ? "relative z-20 dragging" : "",
+  // The list item stays on the rail. Only the ticket moves while it is dragged.
+  const ticketClass = [
+    "ticket",
+    fresh ? "print-in" : "",
+    isDragging ? "z-20 dragging" : "",
     leaving ? "pointer-events-none opacity-40" : "",
   ].join(" ");
 
   return (
-    <li ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={itemClass}>
-      <article className={`ticket ${fresh ? "print-in" : ""}`}>
+    <li className="rail-cell">
+      <article
+        ref={setNodeRef}
+        style={{ transform: CSS.Translate.toString(transform), transition }}
+        className={ticketClass}
+      >
         <button
           ref={setActivatorNodeRef}
           type="button"
@@ -73,6 +79,11 @@ export function ActiveTicket({ card, fresh }: { card: Card; fresh: boolean }) {
           aria-roledescription="kartu yang bisa digeser"
           {...listeners}
         />
+
+        <p className="ticket-head">
+          <span>No. {String(index + 1).padStart(2, "0")}</span>
+          <LocalTime ms={card.createdAt} />
+        </p>
 
         {editing ? (
           <form onSubmit={handleSave} onKeyDown={handleKeyDown}>
@@ -115,11 +126,12 @@ export function ActiveTicket({ card, fresh }: { card: Card; fresh: boolean }) {
         ) : (
           <>
             <h2 className="ticket-title">{card.title}</h2>
-            <Perforation />
-            {card.body ? <p className="ticket-body">{card.body}</p> : null}
-            <p className="meta min-h-5">
-              <LocalTime ms={card.createdAt} />
-            </p>
+            {card.body ? (
+              <>
+                <Perforation />
+                <p className="ticket-body">{card.body}</p>
+              </>
+            ) : null}
             <p role="alert" className="error-text">
               {error}
             </p>

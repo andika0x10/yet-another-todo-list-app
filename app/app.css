@@ -1,46 +1,86 @@
 @import "tailwindcss" source(".");
 
 @theme {
-  --font-display: "Sofia Sans Extra Condensed", "Arial Narrow", "Roboto Condensed", ui-sans-serif, sans-serif;
-  --font-receipt: "Courier Prime", "Courier New", ui-monospace, monospace;
+  /* One family only: a thermal printer prints one typeface at two sizes. */
+  --font-display: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-receipt: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
-  --color-paper: #f4f5f5;
-  --color-ink: #23262b;
-  --color-muted: #6b7078;
-  --color-rail: #c9cdd1;
-  --color-stamp: #c9301b;
+  /* The pass: brushed steel wall, stainless rail, thermal paper, printer ink. */
+  --color-wall: #2d3338;
+  --color-steel: #e9ecee;
+  --color-steel-muted: #a9b1b8;
+  --color-paper: #f2f3ef;
+  --color-ink: #1f2226;
+  --color-muted: #5b6168;
+  --color-faded: #9a9e9e;
+  --color-stamp: #c3291a;
+  --color-stamp-wall: #ff9a86;
+}
+
+:root {
+  --rail-metal: linear-gradient(180deg, #f5f7f8 0, #cfd4d8 25%, #8d959c 52%, #c9ced2 75%, #737b82 100%);
+  --clip-metal: linear-gradient(180deg, #f7f9fa 0, #c6cbd0 42%, #8a929a 100%);
 }
 
 @layer base {
   html {
-    color-scheme: light;
-    background: #fff;
+    color-scheme: dark;
+    background: var(--color-wall);
   }
 
   body {
-    @apply bg-white font-receipt text-ink antialiased;
+    @apply font-receipt text-steel antialiased;
+    min-height: 100dvh;
+    background-color: var(--color-wall);
+    background-image:
+      repeating-linear-gradient(0deg, rgb(255 255 255 / 0.018) 0 1px, transparent 1px 3px),
+      linear-gradient(180deg, #363d43, var(--color-wall) 45%);
   }
 
+  /* Two-tone ring so focus shows on both the steel wall and the paper. */
   :where(a, button, input, textarea):focus-visible {
     outline: 2px solid var(--color-ink);
     outline-offset: 3px;
+    box-shadow: 0 0 0 3px #fff;
   }
 }
 
 @layer components {
-  /* Ticket rail: tight columns, extra room below for the sawtooth edge. */
+  /* Rail: one cell per ticket. Each cell draws its own piece of the rail, so the rail stays put when a ticket is dragged. */
   .board-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
-    gap: 3.25rem 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 3rem 2rem;
     align-items: start;
   }
 
-  /* Ticket: receipt paper with a hanging hole on top and a sawtooth bottom edge. */
-  .ticket {
+  .rail-cell {
     position: relative;
-    background: var(--color-paper);
-    padding: 2.75rem 1.5rem 1rem;
+    list-style: none;
+    padding-top: 1.25rem;
+  }
+
+  .rail-cell::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -1rem;
+    right: -1rem;
+    height: 1.375rem;
+    background:
+      var(--rail-metal) 0 0 / 100% 0.875rem no-repeat,
+      linear-gradient(rgb(0 0 0 / 0.42), transparent) 0 0.875rem / 100% 0.5rem no-repeat;
+  }
+
+  /* Ticket: thermal paper with a sawtooth tear edge. */
+  .ticket {
+    --paper: var(--color-paper);
+    position: relative;
+    z-index: 1;
+    background: var(--paper);
+    color: var(--color-ink);
+    padding: 1.75rem 1.25rem 1rem;
+    filter: drop-shadow(0 6px 8px rgb(0 0 0 / 0.38));
   }
 
   .ticket::after {
@@ -50,20 +90,27 @@
     right: 0;
     bottom: -7px;
     height: 7px;
-    background: var(--color-paper);
+    background: var(--paper);
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='7'%3E%3Cpath d='M0 0h14L7 7z'/%3E%3C/svg%3E") repeat-x left top / 14px 7px;
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='7'%3E%3Cpath d='M0 0h14L7 7z'/%3E%3C/svg%3E") repeat-x left top / 14px 7px;
   }
 
-  /* Hanging hole. On active cards it is also the drag handle. */
+  .ticket-archived {
+    --paper: #dfe1dc;
+  }
+
+  .dragging {
+    filter: drop-shadow(0 14px 14px rgb(0 0 0 / 0.5));
+  }
+
+  /* Clip that holds a ticket on the rail. On active cards it is also the drag handle. */
   .hole {
     position: absolute;
-    top: 0.5rem;
+    top: -1.375rem;
     left: 50%;
-    display: grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2rem;
+    display: block;
+    width: 3.25rem;
+    height: 2.125rem;
     translate: -50% 0;
     background: none;
     border: 0;
@@ -72,11 +119,26 @@
 
   .hole::before {
     content: "";
-    width: 0.8125rem;
-    height: 0.8125rem;
+    position: absolute;
+    inset: 0.125rem 0.25rem;
+    border-radius: 0.25rem 0.25rem 0.5rem 0.5rem;
+    background: var(--clip-metal);
+    box-shadow:
+      inset 0 0 0 1px rgb(0 0 0 / 0.28),
+      0 2px 3px rgb(0 0 0 / 0.4);
+  }
+
+  .hole::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0.5rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    translate: -50% 0;
     border-radius: 50%;
-    background: #fff;
-    border: 1.5px solid var(--color-rail);
+    background: radial-gradient(circle at 35% 30%, #fff, #8b939a 72%);
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.3);
   }
 
   button.hole {
@@ -85,7 +147,7 @@
   }
 
   button.hole:hover::before {
-    border-color: var(--color-muted);
+    filter: brightness(1.08);
   }
 
   button.hole:disabled {
@@ -93,22 +155,18 @@
   }
 
   button.hole:disabled::before {
-    border-color: var(--color-rail);
-  }
-
-  .dragging {
-    filter: drop-shadow(0 8px 10px rgb(35 38 43 / 0.14));
+    filter: none;
   }
 
   .dragging .hole {
     cursor: grabbing;
   }
 
-  /* Perforation between title and body. */
+  /* Tear line between the title and the body. The notches show the wall behind the paper. */
   .perforation {
     position: relative;
-    margin: 1rem -1.5rem;
-    border-top: 1.5px dashed var(--color-rail);
+    margin: 1rem -1.25rem;
+    border-top: 1.5px dashed var(--color-faded);
   }
 
   .perforation::before,
@@ -119,7 +177,7 @@
     width: 1rem;
     height: 1rem;
     border-radius: 50%;
-    background: #fff;
+    background: var(--color-wall);
   }
 
   .perforation::before {
@@ -130,44 +188,71 @@
     right: -0.5rem;
   }
 
-  /* Blank ticket where a new card is written. */
-  .ticket-blank {
-    border: 1.5px dashed var(--color-rail);
-    padding: 1.5rem 1.5rem 1rem;
+  /* Printer: a card is written on paper that comes out of the slot. */
+  .printer {
+    position: relative;
+    max-width: 44rem;
   }
 
-  .ticket-blank .perforation {
-    margin-inline: -1.5px;
-    margin-block: 1rem;
+  .printer::before {
+    content: "";
+    display: block;
+    height: 1.25rem;
+    margin-inline: -1rem;
+    border-radius: 0.375rem;
+    background:
+      linear-gradient(#0b0d0e, #0b0d0e) center 0.5rem / calc(100% - 1.5rem) 0.25rem no-repeat,
+      linear-gradient(180deg, #4b535a, #25292d);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.2),
+      0 4px 10px rgb(0 0 0 / 0.4);
   }
 
-  .ticket-blank .perforation::before,
-  .ticket-blank .perforation::after {
-    display: none;
+  .ticket-new {
+    margin-top: -0.625rem;
+    padding-top: 1.75rem;
   }
 
-  /* Ticket text. */
+  .ticket-new::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0.75rem;
+    background: linear-gradient(rgb(0 0 0 / 0.16), transparent);
+    pointer-events: none;
+  }
+
+  /* Ticket text: one family, a big bold line for the item and small regular print for the rest. */
+  .ticket-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 1.25rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    color: var(--color-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
   .ticket-title {
     font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 2rem;
-    line-height: 1.05;
-    letter-spacing: -0.005em;
+    font-weight: 700;
+    font-size: 1.375rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
     overflow-wrap: anywhere;
   }
 
   .ticket-body {
-    font-size: 0.9375rem;
-    line-height: 1.65;
+    font-size: 0.875rem;
+    line-height: 1.6;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
-  }
-
-  .meta {
-    margin-top: 1rem;
-    font-size: 0.8125rem;
-    line-height: 1.25rem;
-    color: var(--color-muted);
   }
 
   .error-text {
@@ -183,17 +268,13 @@
   /* Text fields. */
   .field {
     display: block;
-    width: calc(100% + 1.25rem);
-    margin-inline: -0.625rem;
+    width: calc(100% + 1rem);
+    margin-inline: -0.5rem;
     border: 0;
     border-radius: 0;
-    padding: 0.5rem 0.625rem;
-    background: #fff;
+    padding: 0.5rem;
+    background: rgb(31 34 38 / 0.06);
     color: var(--color-ink);
-  }
-
-  .ticket-blank .field {
-    background: var(--color-paper);
   }
 
   .field::placeholder {
@@ -203,15 +284,17 @@
 
   .field-title {
     font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 2rem;
-    line-height: 1.05;
+    font-weight: 700;
+    font-size: 1.375rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
   }
 
   .field-body {
     font-family: var(--font-receipt);
-    font-size: 0.9375rem;
-    line-height: 1.65;
+    font-size: 0.875rem;
+    line-height: 1.6;
     min-height: 6.5rem;
     resize: none;
     field-sizing: content;
@@ -239,23 +322,26 @@
     display: flex;
     align-items: center;
     gap: 1.25rem;
-    margin-top: 0.75rem;
-    min-height: 2.5rem;
+    margin-top: 1rem;
+    padding-top: 0.375rem;
+    border-top: 1.5px dashed var(--color-faded);
+    min-height: 3.25rem;
   }
 
   .button {
-    min-height: 2.5rem;
-    padding: 0 1rem;
+    min-height: 2.75rem;
+    padding: 0 1.25rem;
     border-radius: 0;
     background: var(--color-ink);
-    color: #fff;
+    color: var(--color-paper);
     font-size: 0.875rem;
     font-weight: 700;
+    letter-spacing: 0.02em;
     transition: background-color 120ms;
   }
 
   .button:hover:not(:disabled) {
-    background: #3b4047;
+    background: #3a3f45;
   }
 
   .button:disabled {
@@ -266,7 +352,7 @@
     min-height: 2.5rem;
     font-size: 0.875rem;
     text-decoration: underline;
-    text-decoration-color: var(--color-rail);
+    text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
     text-underline-offset: 0.25em;
     transition: text-decoration-color 120ms;
   }
@@ -279,17 +365,17 @@
     color: var(--color-stamp);
   }
 
-  /* The only spontaneous motion: a new card prints from top to bottom. */
+  /* The only spontaneous motion: a new card prints from top to bottom. The negative top inset keeps the clip visible. */
   .print-in {
     animation: print-in 520ms steps(14, end);
   }
 
   @keyframes print-in {
     from {
-      clip-path: inset(0 0 100% 0);
+      clip-path: inset(-2rem -1rem 100% -1rem);
     }
     to {
-      clip-path: inset(0 0 -12px 0);
+      clip-path: inset(-2rem -1rem -12px -1rem);
     }
   }
 

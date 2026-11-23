@@ -18,7 +18,7 @@ export default function Archive({ loaderData }: Route.ComponentProps) {
   const { cards } = loaderData;
 
   if (cards.length === 0) {
-    return <p className="ticket-body max-w-[28rem] text-muted">Arsip kosong. Kartu yang kamu arsipkan muncul di sini.</p>;
+    return <p className="ticket-body max-w-[28rem] text-steel-muted">Arsip kosong. Kartu yang kamu arsipkan muncul di sini.</p>;
   }
 
   return (

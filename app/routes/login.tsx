@@ -83,35 +83,37 @@ export default function Login({ actionData }: Route.ComponentProps) {
 
   return (
     <main className="grid min-h-dvh place-items-center px-6 py-16">
-      <article className="ticket w-full max-w-[19rem]">
-        <span className="hole" aria-hidden="true" />
-        <h1 className="ticket-title">Masuk</h1>
-        <Perforation />
-        <Form method="post">
-          <label htmlFor="pin" className="ticket-body block">
-            Masukkan PIN 6 digit.
-          </label>
-          <input
-            ref={inputRef}
-            id="pin"
-            name="pin"
-            type="password"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            autoComplete="off"
-            autoFocus
-            maxLength={6}
-            value={pin}
-            readOnly={busy}
-            onChange={handleChange}
-            aria-describedby="pin-message"
-            className="field-pin mt-6"
-          />
-          <p id="pin-message" role="alert" className="error-text mt-4 min-h-[3.25rem]">
-            {busy ? "Memeriksa PIN" : actionData?.error}
-          </p>
-        </Form>
-      </article>
+      <div className="rail-cell w-full max-w-[19rem]">
+        <article className="ticket">
+          <span className="hole" aria-hidden="true" />
+          <h1 className="ticket-title">Masuk</h1>
+          <Perforation />
+          <Form method="post">
+            <label htmlFor="pin" className="ticket-body block">
+              Masukkan PIN 6 digit.
+            </label>
+            <input
+              ref={inputRef}
+              id="pin"
+              name="pin"
+              type="password"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              autoComplete="off"
+              autoFocus
+              maxLength={6}
+              value={pin}
+              readOnly={busy}
+              onChange={handleChange}
+              aria-describedby="pin-message"
+              className="field-pin mt-6"
+            />
+            <p id="pin-message" role="alert" className="error-text mt-4 min-h-[3.25rem]">
+              {busy ? "Memeriksa PIN" : actionData?.error}
+            </p>
+          </Form>
+        </article>
+      </div>
     </main>
   );
 }

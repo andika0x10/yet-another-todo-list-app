@@ -6,7 +6,7 @@ import { clientId } from "~/lib/client";
 import { BODY_MAX, TITLE_MAX } from "~/lib/limits";
 import type { action } from "~/routes/cards";
 
-/** Blank dashed ticket: where a new card is written. */
+/** Printer slot above the rail: a new card is written on paper that comes out of it. */
 export function AddTicket() {
   const fetcher = useFetcher<typeof action>({ key: "card-new" });
   const formRef = useRef<HTMLFormElement>(null);
@@ -42,33 +42,41 @@ export function AddTicket() {
   const error = fetcher.data && !fetcher.data.ok ? fetcher.data.error : null;
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="ticket-blank">
-      <label htmlFor="new-title" className="sr-only">
-        Judul
-      </label>
-      <input
-        ref={titleRef}
-        id="new-title"
-        name="title"
-        required
-        maxLength={TITLE_MAX}
-        placeholder="Judul"
-        autoComplete="off"
-        className="field field-title"
-      />
-      <Perforation />
-      <label htmlFor="new-body" className="sr-only">
-        Isi
-      </label>
-      <textarea id="new-body" name="body" maxLength={BODY_MAX} placeholder="Isi" className="field field-body" />
-      <p role="alert" className="error-text min-h-5">
-        {error}
-      </p>
-      <div className="actions">
-        <button type="submit" className="button" disabled={busy}>
-          Tambah kartu
-        </button>
-      </div>
-    </form>
+    <div className="printer">
+      <form
+        ref={formRef}
+        onSubmit={handleSubmit}
+        onKeyDown={handleKeyDown}
+        aria-label="Kartu baru"
+        className="ticket ticket-new"
+      >
+        <label htmlFor="new-title" className="sr-only">
+          Judul
+        </label>
+        <input
+          ref={titleRef}
+          id="new-title"
+          name="title"
+          required
+          maxLength={TITLE_MAX}
+          placeholder="Judul"
+          autoComplete="off"
+          className="field field-title"
+        />
+        <Perforation />
+        <label htmlFor="new-body" className="sr-only">
+          Isi
+        </label>
+        <textarea id="new-body" name="body" maxLength={BODY_MAX} placeholder="Isi" className="field field-body" />
+        <p role="alert" className="error-text min-h-5">
+          {error}
+        </p>
+        <div className="actions">
+          <button type="submit" className="button" disabled={busy}>
+            Tambah kartu
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

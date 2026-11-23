@@ -45,7 +45,7 @@ export async function countCards(db: D1Database): Promise<{ active: number; arch
   return counts;
 }
 
-/** New cards go to the front, next to the blank ticket. */
+/** New cards go to the front of the rail. */
 export async function createCard(db: D1Database, title: string, body: string): Promise<CardResult> {
   const checked = validate(title, body);
   if ("ok" in checked) return checked;

@@ -96,6 +96,7 @@ export default function Active({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
+      <AddTicket />
       <DndContext
         id="card-board"
         sensors={sensors}
@@ -109,25 +110,22 @@ export default function Active({ loaderData }: Route.ComponentProps) {
           },
         }}
       >
-        <ul role="list" className="board-grid">
-          <li className="list-none">
-            <AddTicket />
-          </li>
+        <ul role="list" className="board-grid mt-16">
           <SortableContext items={order} strategy={rectSortingStrategy}>
-            {ordered.map((card) => (
-              <ActiveTicket key={card.id} card={card} fresh={fresh.has(card.id)} />
+            {ordered.map((card, index) => (
+              <ActiveTicket key={card.id} card={card} index={index} fresh={fresh.has(card.id)} />
             ))}
           </SortableContext>
           {ordered.length === 0 ? (
-            <li className="list-none pt-2 text-muted sm:col-span-2">
-              <p className="ticket-body max-w-[28rem]">
-                Belum ada kartu. Tulis judul dan isi di tiket kosong, lalu tekan Tambah kartu.
+            <li className="rail-cell sm:col-span-2">
+              <p className="ticket-body max-w-[28rem] pt-6 text-steel-muted">
+                Rel masih kosong. Tulis judul dan isi di atas, lalu tekan Tambah kartu.
               </p>
             </li>
           ) : null}
         </ul>
       </DndContext>
-      <p role="alert" className="error-text mt-8 min-h-5">
+      <p role="alert" className="error-text mt-8 min-h-5 text-stamp-wall">
         {reorderError}
       </p>
     </>

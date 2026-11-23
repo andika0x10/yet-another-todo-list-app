@@ -72,8 +72,8 @@ function useLiveSync() {
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
   [
-    "-mb-px inline-flex items-baseline gap-2 border-b-2 pb-3 font-display text-[1.5rem] font-extrabold leading-none",
-    isActive ? "border-ink text-ink" : "border-transparent text-muted hover:text-ink",
+    "-mb-px inline-flex items-baseline gap-2 border-b-2 pb-3 text-[1.125rem] font-bold leading-none",
+    isActive ? "border-steel text-steel" : "border-transparent text-steel-muted hover:text-steel",
   ].join(" ");
 
 export default function Board({ loaderData }: Route.ComponentProps) {
@@ -81,9 +81,9 @@ export default function Board({ loaderData }: Route.ComponentProps) {
   useLiveSync();
 
   return (
-    <div className="mx-auto w-full max-w-[60rem] px-6 pt-10 pb-28 sm:pt-20">
+    <div className="mx-auto w-full max-w-[70rem] px-4 pt-10 pb-28 sm:px-6 sm:pt-16">
       <header className="flex items-start justify-between gap-6">
-        <h1 className="font-display text-[3rem] font-extrabold leading-[0.9] tracking-[-0.01em] sm:text-[4rem]">
+        <h1 className="font-display text-[2.25rem] font-bold leading-none tracking-[-0.03em] sm:text-[3rem]">
           Daftar tugas
         </h1>
         <Form method="post" action="/logout">
@@ -93,18 +93,18 @@ export default function Board({ loaderData }: Route.ComponentProps) {
         </Form>
       </header>
 
-      <nav aria-label="Daftar kartu" className="mt-12 flex gap-8 border-b border-rail">
+      <nav aria-label="Daftar kartu" className="mt-10 flex gap-8 border-b border-steel/20">
         <NavLink to="/" end className={tabClass}>
           Aktif
-          <span className="font-receipt text-sm font-normal text-muted">{counts.active}</span>
+          <span className="font-receipt text-sm font-normal text-steel-muted">{counts.active}</span>
         </NavLink>
         <NavLink to="/archive" className={tabClass}>
           Arsip
-          <span className="font-receipt text-sm font-normal text-muted">{counts.archived}</span>
+          <span className="font-receipt text-sm font-normal text-steel-muted">{counts.archived}</span>
         </NavLink>
       </nav>
 
-      <main className="mt-12">
+      <main className="mt-10">
         <Outlet />
       </main>
     </div>

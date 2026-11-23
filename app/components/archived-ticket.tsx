@@ -7,7 +7,7 @@ import { clientId } from "~/lib/client";
 import type { Card } from "~/lib/types";
 import type { action } from "~/routes/cards";
 
-/** Archived card: can only be restored or deleted. */
+/** Archived card: dimmer paper on the rail. Can only be restored or deleted. */
 export function ArchivedTicket({ card }: { card: Card }) {
   const fetcher = useFetcher<typeof action>({ key: `card-${card.id}` });
   const [confirming, setConfirming] = useState(false);
@@ -21,19 +21,23 @@ export function ArchivedTicket({ card }: { card: Card }) {
   }
 
   return (
-    <li className={`list-none ${leaving ? "pointer-events-none opacity-40" : ""}`}>
-      <article className="ticket">
+    <li className="rail-cell">
+      <article className={`ticket ticket-archived ${leaving ? "pointer-events-none opacity-40" : ""}`}>
         <span className="hole" aria-hidden="true" />
-        <h2 className="ticket-title">{card.title}</h2>
-        <Perforation />
-        {card.body ? <p className="ticket-body">{card.body}</p> : null}
-        <p className="meta min-h-5">
+        <p className="ticket-head">
           {card.archivedAt ? (
-            <>
+            <span>
               Diarsipkan <LocalTime ms={card.archivedAt} />
-            </>
+            </span>
           ) : null}
         </p>
+        <h2 className="ticket-title">{card.title}</h2>
+        {card.body ? (
+          <>
+            <Perforation />
+            <p className="ticket-body">{card.body}</p>
+          </>
+        ) : null}
         <p role="alert" className="error-text">
           {error}
         </p>
